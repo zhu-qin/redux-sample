@@ -42,6 +42,6 @@ li {
   cursor: pointer;
 }
 
-.root {
+.wrapper {
   display: flex;
 }

@@ -22,7 +22,10 @@
 
     let node
 
-    if (virtualTree.type != 'text') {
+    if (typeof virtualTree.type === 'function') {
+      virtualTree = new virtualTree.type(virtualTree.props).render()
+      node = document.createElement(virtualTree.type)
+    } else if (virtualTree.type != 'text') {
       node = document.createElement(virtualTree.type)
     } else if (virtualTree.type === 'text') {
       node = document.createTextNode(virtualTree.props.text)
@@ -50,14 +53,11 @@
     }
 
     container.appendChild(node)
-    return container
   }
 
-
   class TodoList {
-    constructor(store, container) {
-      this.store = store
-      this.container = container
+    constructor(props) {
+      this.props = props
       this.todoID = 5
       this.addListenerToStore()
       this.todoForm = {
@@ -68,10 +68,11 @@
 
     addListenerToStore() {
       let listener = () => {
-        let state = this.store.getState()
-        this.render(state)
+        this.state = this.props.store.getState()
+        renderCompleteTree()
       }
-      this.store.subscribe(listener)
+      this.state = this.props.store.getState()
+      this.props.store.subscribe(listener)
     }
 
     clickHandler(todo) {
@@ -102,10 +103,13 @@
       reduxActions.addTodo(todo)
     }
 
-    render(state) {
-      this.container.innerHTML = ""
+    render() {
 
-      let todos = state.todos.map((todo) => {
+      if (!this.state.todos) {
+        return ul({className: 'todo-list'})
+      }
+
+      let todos = this.state.todos.map((todo) => {
         return (
           li({
             className: 'todo',
@@ -131,26 +135,33 @@
       let list = ul({
         className: 'todo-list',
         children: [
-          textNode({text: state.title}),
+          textNode({text: this.state.title}),
           ...todos,
           titleInput,
           submitButton
         ]
       })
 
-      createTree(list, this.container)
+      return list
     }
   }
 
+  const renderCompleteTree = () => {
+    let entry = div({
+      className: 'wrapper',
+      children: [
+        createElement(TodoList, {store: reduxStore }),
+        createElement(TodoList, {store: reduxStore }),
+        createElement(TodoList, {store: reduxStore })
+      ]
+    })
 
-
+    let root = document.getElementById('root')
+    root.innerHTML = ""
+    createTree(entry, root)
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
-    new TodoList(reduxStore, document.getElementById('todos-1'))
-
-    new TodoList(reduxStore, document.getElementById('todos-2'))
-
-    new TodoList(reduxStore, document.getElementById('todos-3'))
 
     let todosDocument = {
       type: 'TodoList',
@@ -163,7 +174,8 @@
       ]
     }
 
-    setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 300)
+    renderCompleteTree()
+    setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 100)
   })
 
 })()

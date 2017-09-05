@@ -6,7 +6,6 @@
   }
 
   function applyMiddeware(middlewares) {
-
     return (createStore) => (mainReducer, preloadedState, storeEnhancer) => {
       let store = createStore(mainReducer, preloadedState, storeEnhancer)
       let dispatch = store.dispatch
@@ -42,15 +41,17 @@
   }
 
   function createStore(mainReducer, preloadedState, storeEnhancer) {
+
+    if (storeEnhancer) {
+      return storeEnhancer(createStore)(mainReducer, preloadedState)
+    }
+
     let state = preloadedState
     let listeners = []
 
     function dispatch(action) {
-      let nextState = mainReducer(state, action)
-      if (state != nextState) {
-        state = nextState
-        listeners.forEach((listener) => listener())
-      }
+      state = mainReducer(state, action)
+      listeners.forEach((listener) => listener())
     }
 
     function subscribe(listener) {
