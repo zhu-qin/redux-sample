@@ -163,7 +163,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
 
-    let todosDocument = {
+    const todosDocument = {
       type: 'TodoList',
       title: 'This is a todo list',
       id: 1000,
@@ -175,7 +175,7 @@
     }
 
     renderCompleteTree()
-    setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 100)
+    setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 0)
   })
 
 })()
