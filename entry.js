@@ -55,36 +55,24 @@
     container.appendChild(node)
   }
 
+  let TODO_ID = 10
+
   class TodoList {
-    constructor(props) {
-      this.props = props
-      this.todoID = 5
-      this.addListenerToStore()
+    constructor(appState) {
+      this.appState = appState || {}
       this.todoForm = {
         title: "",
-        description: ""
+        description: "",
+        id: TODO_ID
       }
-    }
-
-    addListenerToStore() {
-      let listener = () => {
-        this.state = this.props.store.getState()
-        renderCompleteTree()
-      }
-      this.state = this.props.store.getState()
-      this.props.store.subscribe(listener)
     }
 
     clickHandler(todo) {
-      return (e) => {
-        reduxActions.deleteTodo(todo)
-      }
+      return (e) => reduxActions.deleteTodo(todo)
     }
 
     changeListener(formKey) {
-      return (e) => {
-        this.todoForm[formKey] = e.currentTarget.value
-      }
+      return (e) => this.todoForm[formKey] = e.currentTarget.value
     }
 
     submitForm(e) {
@@ -92,7 +80,7 @@
       let todo = {
         title: this.todoForm.title,
         description: this.todoForm.description,
-        id: this.todoID ++
+        id: TODO_ID ++
       }
 
       this.todoForm = {
@@ -104,12 +92,11 @@
     }
 
     render() {
-
-      if (!this.state.todos) {
+      if (!this.appState.todos) {
         return ul({className: 'todo-list'})
       }
 
-      let todos = this.state.todos.map((todo) => {
+      let todos = this.appState.todos.map((todo) => {
         return (
           li({
             className: 'todo',
@@ -135,7 +122,7 @@
       let list = ul({
         className: 'todo-list',
         children: [
-          textNode({text: this.state.title}),
+          textNode({text: this.appState.title}),
           ...todos,
           titleInput,
           submitButton
@@ -146,13 +133,13 @@
     }
   }
 
-  const renderCompleteTree = () => {
+  const renderCompleteTree = (appState) => {
     let entry = div({
       className: 'wrapper',
       children: [
-        createElement(TodoList, {store: reduxStore }),
-        createElement(TodoList, {store: reduxStore }),
-        createElement(TodoList, {store: reduxStore })
+        createElement(TodoList, appState),
+        createElement(TodoList, appState),
+        createElement(TodoList, appState)
       ]
     })
 
@@ -162,6 +149,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+
 
     const todosDocument = {
       type: 'TodoList',
@@ -173,6 +161,8 @@
         {type: 'Todo', id: 3, title: 'world' }
       ]
     }
+
+    reduxStore.subscribe(() => renderCompleteTree(reduxStore.getState()))
 
     renderCompleteTree()
     setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 0)
