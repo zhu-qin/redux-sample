@@ -6,7 +6,7 @@
     function createSetterAction(actionType) {
         return function action(string, payload) {
           if (typeof string != 'string' || string.includes(' ')) {
-            throw 'first argument must be a string with not spaces for state key, second argument must be a state value'
+            throw 'first argument must be a string with no spaces for state key, second argument must be a state value'
           } else if (typeof payload === 'undefined') {
             throw 'second argument must be a state value'
           }

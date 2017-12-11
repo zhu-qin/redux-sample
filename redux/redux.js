@@ -1,10 +1,10 @@
 (function () {
   'use strict'
 
-  function compose2() {
+  function compose() {
     let fns = arguments
     let start = fns.length - 1
-    return function() {
+    return function composedFn() {
        let i = start
        let result = fns[start].apply(this, arguments)
        while (i--) {
@@ -13,15 +13,6 @@
      return result
     }
   }
-
-  function compose() {
-    return Array.from(arguments).reduce((totalFn, fn) => {
-      return function(args) {
-        return fn(totalFn(args))
-      }
-    })
-  }
-
 
   function applyMiddeware(middlewares) {
 
@@ -65,7 +56,7 @@
     if (storeEnhancer) {
       return storeEnhancer(createStore)(mainReducer, preloadedState)
     }
-    
+
     let currentState = preloadedState
     let listeners = []
 
