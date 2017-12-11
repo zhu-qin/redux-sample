@@ -1,32 +1,30 @@
 (function () {
   'use strict'
 
-  function todosReducer(state = {}, action) {
-    Object.freeze(state)
-    switch (action.type) {
-      case 'SET_TODOS_DOCUMENT':
-        return action.todosDocument
-        break;
-      case 'ADD_TODO':
-          let newTodoList = state.todos.concat(action.todo)
-          return Object.assign({}, state, { todos: newTodoList })
-        break;
-      case 'DELETE_TODO':
-          let found = state.todos.find((todo) => action.todo.id === todo.id)
-          if (found) {
-            let idx = state.todos.indexOf(found)
-            let newTodoList = state.todos.slice()
-                newTodoList.splice(idx, 1)
-            return Object.assign({}, state, { todos: newTodoList })
-          } else {
-            return state
+  function createSetterReducer(actionType) {
+    return function setterReducer(state = {}, action) {
+        if (actionType === action.type) {
+          if (Array.isArray(action.payload)) {
+            action.payload = Object.assign([], action.payload)
+          } else if (action.payload && typeof action.payload === 'object') {
+            action.payload = Object.assign({}, action.payload)
           }
-        break;
-      default:
-        return state
+          if (!(action.resource in state)) {
+            console.warn(`${action.type} is setting a new key and value for state.${action.type.split('_').pop().toLowerCase()}.${action.resource}`)
+          }
+          return Object.assign({}, state, { [action.resource]: action.payload })
+        } else {
+          return state
+        }
     }
   }
 
-  window.todosReducer = todosReducer
+  window.mainReducer = {
+    users: createSetterReducer('SET_USERS'),
+    settings: createSetterReducer('SET_SETTINGS'),
+    documents: createSetterReducer('SET_DOCUMENTS'),
+    messages: createSetterReducer('SET_MESSAGES'),
+    studio: createSetterReducer('SET_STUDIO')
+  }
 
 })()

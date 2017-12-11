@@ -1,8 +1,17 @@
 (function () {
   'use strict'
 
-  function compose(fnsArray) {
-    return fnsArray.reduce((fn, acc) => (args) => fn(acc(args)))
+  function compose() {
+    let fns = arguments
+    let start = fns.length - 1
+    return function() {
+       let i = start
+       let result = fns[start].apply(this, arguments)
+       while (i--) {
+         result = fns[i].call(this, result)
+       }
+     return result
+    }
   }
 
   function applyMiddeware(middlewares) {

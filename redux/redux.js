@@ -1,9 +1,27 @@
 (function () {
   'use strict'
 
-  function compose(fnsArray) {
-    return fnsArray.reduce((fn, acc) => (args) => fn(acc(args)))
+  function compose2() {
+    let fns = arguments
+    let start = fns.length - 1
+    return function() {
+       let i = start
+       let result = fns[start].apply(this, arguments)
+       while (i--) {
+         result = fns[i].call(this, result)
+       }
+     return result
+    }
   }
+
+  function compose() {
+    return Array.from(arguments).reduce((totalFn, fn) => {
+      return function(args) {
+        return fn(totalFn(args))
+      }
+    })
+  }
+
 
   function applyMiddeware(middlewares) {
 
@@ -12,7 +30,7 @@
       let dispatch = store.dispatch
       const middlewareAPI = {
         getState: store.getState,
-        dispatch: (...args) => dispatch(...args)
+        dispatch: (args) => dispatch(args)
       }
 
       let chain = middlewares.map((middleware) => middleware(middlewareAPI))
@@ -23,6 +41,7 @@
         dispatch: newDispatch
       }
     }
+
   }
 
   function combineReducers(reducers) {
@@ -42,6 +61,11 @@
   }
 
   function createStore(mainReducer, preloadedState, storeEnhancer) {
+
+    if (storeEnhancer) {
+      return storeEnhancer(createStore)(mainReducer, preloadedState)
+    }
+    
     let currentState = preloadedState
     let listeners = []
 

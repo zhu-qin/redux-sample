@@ -1,7 +1,7 @@
 (function () {
   'use strict'
 
-  window.reduxStore = Redux.createStore(todosReducer, {})
+  window.reduxStore = Redux.createStore(Redux.combineReducers(mainReducer), {})
   window.reduxActions = mapDispatchToActions(reduxStore.dispatch)
 
   const createElement = (type, props) => {
@@ -59,7 +59,7 @@
 
   class TodoList {
     constructor(appState) {
-      this.appState = appState || {}
+      this.currentDocument = appState ? appState.documents.current : {}
       this.todoForm = {
         title: "",
         description: "",
@@ -67,8 +67,18 @@
       }
     }
 
-    clickHandler(todo) {
-      return (e) => reduxActions.deleteTodo(todo)
+    deleteHandler(todo) {
+      return (e) => {
+        let nextState = this.currentDocument
+        let found = nextState.todos.find((el) => todo.id === el.id)
+        if (found) {
+          let idx = nextState.todos.indexOf(found)
+          let newTodoList = nextState.todos.slice()
+              newTodoList.splice(idx, 1)
+          nextState = Object.assign({}, nextState, { todos: newTodoList })
+        }
+        reduxActions.setCurrentDocument(nextState)
+      }
     }
 
     changeListener(formKey) {
@@ -88,21 +98,22 @@
         description: ""
       }
 
-      reduxActions.addTodo(todo)
+      this.currentDocument.todos = this.currentDocument.todos.concat(todo)
+      reduxActions.setCurrentDocument(this.currentDocument)
     }
 
     render() {
-      if (!this.appState.todos) {
+      if (!this.currentDocument || !this.currentDocument.todos) {
         return ul({className: 'todo-list'})
       }
 
-      let todos = this.appState.todos.map((todo) => {
+      let todos = this.currentDocument.todos.map((todo) => {
         return (
           li({
             className: 'todo',
             children: [
               textNode({text: `${todo.title} ${todo.id}`}),
-              div({ className: 'button', onClick: this.clickHandler(todo) })
+              div({ className: 'button', onClick: this.deleteHandler(todo) })
             ]
           })
         )
@@ -122,7 +133,7 @@
       let list = ul({
         className: 'todo-list',
         children: [
-          textNode({text: this.appState.title}),
+          textNode({text: this.currentDocument.title}),
           ...todos,
           titleInput,
           submitButton
@@ -153,8 +164,9 @@
 
     const todosDocument = {
       type: 'TodoList',
+      'entity-type': 'document',
       title: 'This is a todo list',
-      id: 1000,
+      uid: 1000,
       todos: [
         {type: 'Todo', id: 1, title: 'hello' },
         {type: 'Todo', id: 2, title: 'goodbye' },
@@ -162,10 +174,17 @@
       ]
     }
 
+    const currentUser = {
+      'entity-type': 'user',
+      'id': 'test',
+      'firstName': 'Bob'
+    }
+
     reduxStore.subscribe(() => renderCompleteTree(reduxStore.getState()))
 
     renderCompleteTree()
-    setTimeout(reduxActions.setTodosDocument.bind(null, todosDocument), 0)
+    reduxActions.setCurrentUser(currentUser)
+    setTimeout(reduxActions.setCurrentDocument.bind(null, todosDocument), 0)
   })
 
 })()
