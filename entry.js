@@ -176,14 +176,16 @@
       ]
     }
 
+
     const currentUser = {
       'entity-type': 'user',
       'id': 'test',
       'firstName': 'Bob'
     }
 
+    window.configureInitialState(currentUser, {}, reduxActions)
     reduxStore.subscribe(() => renderCompleteTree(reduxStore.getState()))
-    reduxActions.setCurrentUser(currentUser)
+    renderCompleteTree(reduxStore.getState())
     setTimeout(reduxActions.setCurrentDocument.bind(null, todosDocument), 0)
   })
 

@@ -1,5 +1,5 @@
 (function () {
-  'use strict'
+  'use strict';
 
   function getType(val) {
     let type
@@ -23,8 +23,8 @@
     const typeCheck = {}
 
     return function setterReducer(state = {}, action) {
+        let nextState
         if (actionType === action.type) {
-
           if (Array.isArray(action.payload)) {
             action.payload = Object.assign([], action.payload)
           } else if (action.payload && typeof action.payload === 'object') {
@@ -41,10 +41,12 @@
             throw new TypeError(`Initial type for state.${action.type.split('-').pop()}.${action.resource} is of type ${typeCheck[action.resource].name}, input is of type ${getType(action.payload).name}`)
           }
 
-          return Object.assign({}, state, { [action.resource]: action.payload })
+          nextState = Object.assign({}, state, { [action.resource]: action.payload })
         } else {
-          return state
+          nextState = state
         }
+        
+        return Object.freeze(nextState)
     }
   }
 
