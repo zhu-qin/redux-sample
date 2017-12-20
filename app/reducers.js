@@ -19,43 +19,6 @@
     return type
   }
 
-   const Tuple = function( /* types */ ) {
-
-     const typeInfo = Array.prototype.slice.call(arguments, 0)
-
-     function checkType(type, val) {
-         if (getType(val).name === type.name) {
-           return val
-         } else {
-           throw new TypeError(`Initial type is ${type.name}, input is ${getType(val).name}`)
-         }
-     }
-
-     const _T =  function( /* values */ ) {
-
-          const values = Array.prototype.slice.call(arguments, 0)
-
-          if (values.some((val) => val === null || val === undefined)) {
-             throw new ReferenceError('Tuples may not have any null values')
-          }
-
-          if (values.length !== typeInfo.length) {
-             throw new TypeError('Tuple arity does not match its prototype')
-          }
-
-          values.map(function(val, index) {
-                this['_' + (index + 1)] = checkType(typeInfo[index], val)
-          }, this)
-
-          Object.freeze(this)
-      }
-
-      _T.prototype.values = () => Object.keys(this).map((key) => this[key], this)
-      _T.toString = () => typeInfo.map((fn) => fn.name).join(', ')
-
-      return _T
-  }
-
   function createSetterReducer(actionType) {
     const typeCheck = {}
 
@@ -67,15 +30,16 @@
           } else if (action.payload && typeof action.payload === 'object') {
             action.payload = Object.assign({}, action.payload)
           }
-
+          // sets the type on inital setter
           if (!(action.resource in state)) {
-            typeCheck[action.resource] = Tuple(String, getType(action.payload))
+            typeCheck[action.resource] = getType(action.payload)
             console.warn(`${action.type} is setting a new key and value for state.${action.type.split('-').pop()}.${action.resource}
-              ${typeCheck[action.resource].toString()} are the input types
-              `)
+              ${typeCheck[action.resource].name} is the input type`)
           }
-
-          new typeCheck[action.resource](action.resource, action.payload)
+          // checks type for each value that is set
+          if (typeCheck[action.resource].name !== getType(action.payload).name) {
+            throw new TypeError(`Initial type for state.${action.type.split('-').pop()}.${action.resource} is of type ${typeCheck[action.resource].name}, input is of type ${getType(action.payload).name}`)
+          }
 
           return Object.assign({}, state, { [action.resource]: action.payload })
         } else {
