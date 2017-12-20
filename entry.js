@@ -59,7 +59,8 @@
 
   class TodoList {
     constructor(appState) {
-      this.currentDocument = appState ? appState.documents.current : {}
+      this.appState = appState ? appState : {}
+      this.currentDocument = appState && appState.documents ? appState.documents.current : {}
       this.todoForm = {
         title: "",
         description: "",
@@ -103,7 +104,7 @@
     }
 
     render() {
-      if (!this.currentDocument || !this.currentDocument.todos) {
+      if (!this.currentDocument) {
         return ul({className: 'todo-list'})
       }
 
@@ -133,6 +134,7 @@
       let list = ul({
         className: 'todo-list',
         children: [
+          textNode({text: this.appState.users.current.firstName}),
           textNode({text: this.currentDocument.title}),
           ...todos,
           titleInput,
@@ -165,7 +167,7 @@
     const todosDocument = {
       type: 'TodoList',
       'entity-type': 'document',
-      title: 'This is a todo list',
+      title: ' todo list',
       uid: 1000,
       todos: [
         {type: 'Todo', id: 1, title: 'hello' },
@@ -181,8 +183,6 @@
     }
 
     reduxStore.subscribe(() => renderCompleteTree(reduxStore.getState()))
-
-    renderCompleteTree()
     reduxActions.setCurrentUser(currentUser)
     setTimeout(reduxActions.setCurrentDocument.bind(null, todosDocument), 0)
   })
