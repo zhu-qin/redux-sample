@@ -3,22 +3,22 @@
 
   function mapDispatchToActions(dispatch) {
 
-    function checkValidKeyValue(string, value) {
-      if (typeof string != 'string' || string.includes(' ')) {
-        throw new TypeError('first argument must be a string with no spaces for state key, second argument must be a state value')
-      } else if (value === 'undefined' || value === 'null') {
-        throw new TypeError('second argument must be a state value')
+    function checkValidKeyValue(string, value, actionType) {
+      if (typeof string !== 'string' || string.includes(' ') || !string.length) {
+        throw new TypeError(`first argument ${actionType} for state key ${string} cannot be empty string or have spaces`)
+      } else if ((value === undefined) || (value === null)) {
+        throw new TypeError(`second argument ${actionType} for state key ${string} cannot be null or undefined`)
       }
     }
 
     function createSetterAction(actionType) {
-        return function action(string, payload) {
-          checkValidKeyValue(string, payload)
-          dispatch({
-            type: actionType,
-            resource: string,
-            payload: payload
-          })
+      return function action(string, payload) {
+        checkValidKeyValue(string, payload, actionType)
+        dispatch({
+          type: actionType,
+          resource: string,
+          payload: payload
+        })
       }
     }
 

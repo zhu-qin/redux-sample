@@ -5,6 +5,8 @@
     let type
     if (typeof val === 'string') {
       type = String
+    } else if (typeof val === 'function') {
+      type = Function
     } else if (typeof val === 'number') {
       type = Number
     } else if (typeof val === 'boolean') {
@@ -23,7 +25,9 @@
     const typeCheck = {}
 
     return function setterReducer(state = {}, action) {
+
         let nextState
+
         if (actionType === action.type) {
           if (Array.isArray(action.payload)) {
             action.payload = Object.assign([], action.payload)
@@ -45,7 +49,7 @@
         } else {
           nextState = state
         }
-        
+
         return Object.freeze(nextState)
     }
   }
