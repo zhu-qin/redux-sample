@@ -1,7 +1,4 @@
-(function(){
-  'use strict'
-
-  function mapDispatchToActions(dispatch) {
+export default function mapDispatchToActions(dispatch) {
 
     function checkValidKeyValue(string, value, actionType) {
       if (typeof string !== 'string' || string.includes(' ') || !string.length) {
@@ -47,7 +44,3 @@
     }
 
   }
-
-  window.mapDispatchToActions = mapDispatchToActions
-
-})()

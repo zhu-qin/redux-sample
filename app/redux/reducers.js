@@ -1,6 +1,3 @@
-(function () {
-  'use strict';
-
   function getType(val) {
     let type
     if (typeof val === 'string') {
@@ -54,7 +51,7 @@
     }
   }
 
-  window.mainReducer = {
+  const mainReducer = {
     users: createSetterReducer('set-users'),
     settings: createSetterReducer('set-settings'),
     documents: createSetterReducer('set-documents'),
@@ -62,4 +59,4 @@
     studio: createSetterReducer('set-studio')
   }
 
-})()
+export default mainReducer
