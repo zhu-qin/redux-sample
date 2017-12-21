@@ -81,23 +81,34 @@
           let newTodoList = nextState.todos.slice()
               newTodoList.splice(idx, 1)
           nextState = Object.assign({}, nextState, { todos: newTodoList })
+          this.deleteSelectedTodo(todo)
         }
         reduxActions.setCurrentDocument(nextState)
       }
     }
 
+    addSelectedTodo(todo) {
+      let selectedList = this.appState.documents['selectedTodos']
+      selectedList = selectedList || []
+      selectedList.push(todo)
+      reduxActions.setDocuments(`selectedTodos`, selectedList)
+    }
+
+    deleteSelectedTodo(todo) {
+      let selectedList = this.appState.documents['selectedTodos']
+      let idx = selectedList.indexOf(todo)
+      if (idx > -1) {
+        selectedList.splice(idx, 1)
+      }
+      reduxActions.setDocuments(`selectedTodos`, selectedList)
+    }
+
     checkboxHandler(todo) {
       return (e) => {
         if (e.currentTarget.checked) {
-          let selectedList = this.appState.documents['selectedTodos']
-          selectedList = selectedList || []
-          selectedList.push(todo)
-          reduxActions.setDocuments(`selectedTodos`, selectedList)
+          this.addSelectedTodo(todo)
         } else {
-          let selectedList = this.appState.documents['selectedTodos']
-          let idx = selectedList.indexOf(todo)
-          selectedList.splice(idx ,1)
-          reduxActions.setDocuments(`selectedTodos`, selectedList)
+          this.deleteSelectedTodo(todo)
         }
       }
     }
