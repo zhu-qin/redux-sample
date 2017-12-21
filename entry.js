@@ -62,9 +62,9 @@
   let TODO_ID = 10
 
   class TodoList {
-    constructor(appState) {
-      this.appState = appState ? appState : {}
-      this.currentDocument = appState && appState.documents ? appState.documents.current : {}
+    constructor(props) {
+      this.appState = props.appState ? props.appState : {}
+      this.todosDocument = props.todosDocKey ? this.appState.documents[props.todosDocKey] : null
       this.todoForm = {
         title: "",
         description: "",
@@ -74,7 +74,7 @@
 
     deleteHandler(todo) {
       return (e) => {
-        let nextState = this.currentDocument
+        let nextState = this.todosDocument
         let found = nextState.todos.find((el) => todo.id === el.id)
         if (found) {
           let idx = nextState.todos.indexOf(found)
@@ -83,7 +83,7 @@
           nextState = Object.assign({}, nextState, { todos: newTodoList })
           this.deleteSelectedTodo(todo)
         }
-        reduxActions.setCurrentDocument(nextState)
+        reduxActions.setDocuments(`todos_document_${this.todosDocument.uid}`, nextState)
       }
     }
 
@@ -137,22 +137,22 @@
         description: ""
       }
 
-      this.currentDocument.todos = this.currentDocument.todos.concat(todo)
-      reduxActions.setCurrentDocument(this.currentDocument)
+      this.todosDocument.todos = this.todosDocument.todos.concat(todo)
+      reduxActions.setDocuments(`todos_document_${this.todosDocument.uid}`, this.todosDocument)
     }
 
     render() {
-      if (!this.currentDocument) {
+      if (!this.todosDocument) {
         return ul({className: 'todo-list'})
       }
 
-      let todos = this.currentDocument.todos.map((todo) => {
+      let todos = this.todosDocument.todos.map((todo) => {
         return (
           li({
             className: 'todo',
             children: [
               checkbox({onClick: this.checkboxHandler(todo), checked: this.isChecked(todo)}),
-              textNode({text: `${todo.title} ${todo.id}`}),
+              textNode({text: `${todo.id}, ${todo.title} `}),
               div({ className: 'button', onClick: this.deleteHandler(todo) })
             ]
           })
@@ -174,7 +174,7 @@
         className: 'todo-list',
         children: [
           textNode({text: this.appState.users.current.firstName}),
-          textNode({text: this.currentDocument.title}),
+          textNode({text: this.todosDocument.title}),
           ...todos,
           titleInput,
           submitButton
@@ -199,7 +199,7 @@
           li({
             className: 'todo',
             children: [
-              textNode({text: `${todo.title} ${todo.id}`}),
+              textNode({text: `${todo.id}, ${todo.title}`}),
             ]
           })
         )
@@ -218,12 +218,20 @@
   }
 
   const renderCompleteTree = (appState) => {
+
+    let todosDocuments = Object.keys(appState.documents)
+                          .filter((todosDocKey) => todosDocKey.includes('todos_document'))
+                          .map((todosDocKey) => {
+                            let props = {
+                                          appState: appState,
+                                          todosDocKey: todosDocKey
+                                        }
+                            return createElement(TodoList, props)
+                          })
     let entry = div({
       className: 'wrapper',
       children: [
-        createElement(TodoList, appState),
-        createElement(TodoList, appState),
-        createElement(TodoList, appState),
+        ...todosDocuments,
         createElement(SelectedList, appState)
       ]
     })
@@ -236,10 +244,10 @@
   document.addEventListener('DOMContentLoaded', () => {
 
 
-    const todosDocument = {
+    const todosList1 = {
       type: 'TodoList',
       'entity-type': 'document',
-      title: ' todo list',
+      title: ' todo list 1',
       uid: 1000,
       todos: [
         {type: 'Todo', id: 1, title: 'hello' },
@@ -247,6 +255,31 @@
         {type: 'Todo', id: 3, title: 'world' }
       ]
     }
+
+    const todosList2 = {
+      type: 'TodoList',
+      'entity-type': 'document',
+      title: ' todo list 2',
+      uid: 1100,
+      todos: [
+        {type: 'Todo', id: 4, title: 'aaaaa' },
+        {type: 'Todo', id: 5, title: 'bbbbb' },
+        {type: 'Todo', id: 6, title: 'ccccc' }
+      ]
+    }
+
+    const todosList3 = {
+      type: 'TodoList',
+      'entity-type': 'document',
+      title: ' todo list 3',
+      uid: 1200,
+      todos: [
+        {type: 'Todo', id: 7, title: 'xxxxx' },
+        {type: 'Todo', id: 8, title: 'yyyyy' },
+        {type: 'Todo', id: 9, title: 'zzzzz' }
+      ]
+    }
+
 
 
     const currentUser = {
@@ -258,7 +291,9 @@
     window.configureInitialState(currentUser, {}, reduxActions)
     reduxStore.subscribe(() => renderCompleteTree(reduxStore.getState()))
     renderCompleteTree(reduxStore.getState())
-    setTimeout(reduxActions.setCurrentDocument.bind(null, todosDocument), 0)
+    reduxActions.setDocuments(`todos_document_${todosList1.uid}`, todosList1)
+    reduxActions.setDocuments(`todos_document_${todosList2.uid}`, todosList2)
+    reduxActions.setDocuments(`todos_document_${todosList3.uid}`, todosList3)
   })
 
 })()
