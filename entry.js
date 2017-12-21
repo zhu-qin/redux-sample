@@ -16,7 +16,7 @@
   const li = (props) => createElement('li', props)
   const textNode = (props) => createElement('text', props)
   const input = (props) => createElement('input', props)
-
+  const checkbox = (props) => createElement('checkbox', props)
 
   const createTree = (virtualTree, container) => {
 
@@ -25,10 +25,14 @@
     if (typeof virtualTree.type === 'function') {
       virtualTree = new virtualTree.type(virtualTree.props).render()
       node = document.createElement(virtualTree.type)
-    } else if (virtualTree.type != 'text') {
-      node = document.createElement(virtualTree.type)
     } else if (virtualTree.type === 'text') {
       node = document.createTextNode(virtualTree.props.text)
+    } else if (virtualTree.type === 'checkbox') {
+      node = document.createElement('input')
+      node.type = 'checkbox'
+      node.checked = virtualTree.props.checked
+    } else {
+      node = document.createElement(virtualTree.type)
     }
 
     let virtualChildren = virtualTree.props.children
@@ -82,8 +86,31 @@
       }
     }
 
+    checkboxHandler(todo) {
+      return (e) => {
+        if (e.currentTarget.checked) {
+          let selectedList = this.appState.documents['selectedTodos']
+          selectedList = selectedList || []
+          selectedList.push(todo)
+          reduxActions.setDocuments(`selectedTodos`, selectedList)
+        } else {
+          let selectedList = this.appState.documents['selectedTodos']
+          let idx = selectedList.indexOf(todo)
+          selectedList.splice(idx ,1)
+          reduxActions.setDocuments(`selectedTodos`, selectedList)
+        }
+      }
+    }
+
     changeListener(formKey) {
       return (e) => this.todoForm[formKey] = e.currentTarget.value
+    }
+
+    isChecked(todo) {
+      let selectedList = this.appState.documents[`selectedTodos`]
+      selectedList = selectedList ? selectedList : []
+      let found = selectedList.filter((el) => el.id === todo.id)[0]
+      return found ? true : false
     }
 
     submitForm(e) {
@@ -113,6 +140,7 @@
           li({
             className: 'todo',
             children: [
+              checkbox({onClick: this.checkboxHandler(todo), checked: this.isChecked(todo)}),
               textNode({text: `${todo.title} ${todo.id}`}),
               div({ className: 'button', onClick: this.deleteHandler(todo) })
             ]
@@ -146,13 +174,46 @@
     }
   }
 
+  class SelectedList {
+    constructor(appState) {
+      this.appState = appState ? appState : {}
+      this.currentDocument = appState && appState.documents ? appState.documents.current : {}
+    }
+
+    render() {
+      let selectedTodos = this.appState.documents['selectedTodos']
+
+      let selectedTodoList = selectedTodos ? selectedTodos.map((todo) => {
+        return (
+          li({
+            className: 'todo',
+            children: [
+              textNode({text: `${todo.title} ${todo.id}`}),
+            ]
+          })
+        )
+      }) : []
+
+      let list = ul({
+        className: 'todo-list',
+        children: [
+          textNode({text: 'Selected Todos'}),
+          ...selectedTodoList
+        ]
+      })
+      return list
+    }
+
+  }
+
   const renderCompleteTree = (appState) => {
     let entry = div({
       className: 'wrapper',
       children: [
         createElement(TodoList, appState),
         createElement(TodoList, appState),
-        createElement(TodoList, appState)
+        createElement(TodoList, appState),
+        createElement(SelectedList, appState)
       ]
     })
 
