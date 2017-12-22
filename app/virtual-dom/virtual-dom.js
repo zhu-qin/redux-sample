@@ -30,9 +30,36 @@ export const createTree = (virtualTree, container) => {
   }
 
   let virtualChildren = virtualTree.props.children
+  let className = virtualTree.props.className
+
+  // events
   let clickListener = virtualTree.props.onClick
   let changeListener = virtualTree.props.onChange
-  let className = virtualTree.props.className
+  // drag and drop events
+
+  let onDragStartListener = virtualTree.props.onDragStart
+  let onDragOverListener = virtualTree.props.onDragOver
+  let onDragDropListener = virtualTree.props.onDragDrop
+
+  // custom data in tags
+  let customData = virtualTree.props.customData
+
+  if (customData) {
+    node.customData = customData
+  }
+
+  if (onDragStartListener) {
+    node.addEventListener('dragstart', onDragStartListener)
+    node.draggable = true
+  }
+
+  if (onDragOverListener) {
+    node.addEventListener('dragover', onDragOverListener)
+  }
+
+  if (onDragDropListener) {
+    node.addEventListener('drop', onDragDropListener)
+  }
 
   if (clickListener) {
     node.addEventListener('click', clickListener)

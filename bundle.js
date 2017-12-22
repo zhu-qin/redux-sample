@@ -90,7 +90,6 @@ var SelectedList = function () {
     _classCallCheck(this, SelectedList);
 
     this.appState = appState ? appState : {};
-    this.currentDocument = appState && appState.documents ? appState.documents.current : {};
   }
 
   _createClass(SelectedList, [{
@@ -133,6 +132,12 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _virtualDom = __webpack_require__(6);
 
+var _todo = __webpack_require__(8);
+
+var _todo2 = _interopRequireDefault(_todo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -141,8 +146,8 @@ var TodoList = function () {
   function TodoList(props) {
     _classCallCheck(this, TodoList);
 
-    this.appState = props.appState ? props.appState : {};
-    this.todosDocument = props.todosDocKey ? this.appState.documents[props.todosDocKey] : null;
+    this.props = props;
+    this.todosDocument = props.todosDocKey ? this.props.appState.documents[props.todosDocKey] : null;
     this.todoForm = {
       title: "",
       description: ""
@@ -150,79 +155,18 @@ var TodoList = function () {
   }
 
   _createClass(TodoList, [{
-    key: "deleteHandler",
-    value: function deleteHandler(todo) {
+    key: 'changeListener',
+    value: function changeListener(formKey) {
       var _this = this;
 
       return function (e) {
-        var nextState = _this.todosDocument;
-        var found = nextState.todos.find(function (el) {
-          return todo.id === el.id;
-        });
-        if (found) {
-          var idx = nextState.todos.indexOf(found);
-          var newTodoList = nextState.todos.slice();
-          newTodoList.splice(idx, 1);
-          nextState = Object.assign({}, nextState, { todos: newTodoList });
-          _this.deleteSelectedTodo(todo);
-        }
-        reduxActions.setDocuments("todos_document_" + _this.todosDocument.uid, nextState);
+        return _this.todoForm[formKey] = e.currentTarget.value;
       };
     }
   }, {
-    key: "addSelectedTodo",
-    value: function addSelectedTodo(todo) {
-      var selectedList = this.appState.documents['selectedTodos'];
-      selectedList = selectedList || [];
-      selectedList.push(todo);
-      reduxActions.setDocuments("selectedTodos", selectedList);
-    }
-  }, {
-    key: "deleteSelectedTodo",
-    value: function deleteSelectedTodo(todo) {
-      var selectedList = this.appState.documents['selectedTodos'];
-      var idx = selectedList.indexOf(todo);
-      if (idx > -1) {
-        selectedList.splice(idx, 1);
-      }
-      reduxActions.setDocuments("selectedTodos", selectedList);
-    }
-  }, {
-    key: "checkboxHandler",
-    value: function checkboxHandler(todo) {
-      var _this2 = this;
-
-      return function (e) {
-        if (e.currentTarget.checked) {
-          _this2.addSelectedTodo(todo);
-        } else {
-          _this2.deleteSelectedTodo(todo);
-        }
-      };
-    }
-  }, {
-    key: "changeListener",
-    value: function changeListener(formKey) {
-      var _this3 = this;
-
-      return function (e) {
-        return _this3.todoForm[formKey] = e.currentTarget.value;
-      };
-    }
-  }, {
-    key: "isChecked",
-    value: function isChecked(todo) {
-      var selectedList = this.appState.documents["selectedTodos"];
-      selectedList = selectedList ? selectedList : [];
-      var found = selectedList.filter(function (el) {
-        return el.id === todo.id;
-      })[0];
-      return found ? true : false;
-    }
-  }, {
-    key: "submitForm",
+    key: 'submitForm',
     value: function submitForm(e) {
-      var nextTodoCount = this.appState.settings.todoCounter + 1;
+      var nextTodoCount = this.props.appState.settings.todoCounter + 1;
 
       var todo = {
         title: this.todoForm.title,
@@ -236,23 +180,25 @@ var TodoList = function () {
       };
 
       this.todosDocument.todos = this.todosDocument.todos.concat(todo);
-      reduxActions.setDocuments("todos_document_" + this.todosDocument.uid, this.todosDocument);
+      reduxActions.setDocuments('todos_document_' + this.todosDocument.uid, this.todosDocument);
       reduxActions.setSettings('todoCounter', nextTodoCount);
     }
   }, {
-    key: "render",
+    key: 'render',
     value: function render() {
-      var _this4 = this;
+      var _this2 = this;
 
       if (!this.todosDocument) {
         return (0, _virtualDom.ul)({ className: 'todo-list' });
       }
 
       var todos = this.todosDocument.todos.map(function (todo) {
-        return (0, _virtualDom.li)({
-          className: 'todo',
-          children: [(0, _virtualDom.checkbox)({ onClick: _this4.checkboxHandler(todo), checked: _this4.isChecked(todo) }), (0, _virtualDom.textNode)({ text: todo.id + ", " + todo.title + " " }), (0, _virtualDom.div)({ className: 'button', onClick: _this4.deleteHandler(todo) })]
-        });
+        var props = {
+          appState: _this2.props.appState,
+          todosDocument: _this2.todosDocument,
+          todo: todo
+        };
+        return (0, _virtualDom.createElement)(_todo2.default, props);
       });
 
       var titleInput = (0, _virtualDom.input)({
@@ -268,7 +214,7 @@ var TodoList = function () {
 
       var list = (0, _virtualDom.ul)({
         className: 'todo-list',
-        children: [(0, _virtualDom.textNode)({ text: this.appState.users.current.firstName }), (0, _virtualDom.textNode)({ text: this.todosDocument.title })].concat(_toConsumableArray(todos), [titleInput, submitButton])
+        children: [(0, _virtualDom.textNode)({ text: this.props.appState.users.current.firstName }), (0, _virtualDom.textNode)({ text: this.todosDocument.title })].concat(_toConsumableArray(todos), [titleInput, submitButton])
       });
 
       return list;
@@ -606,9 +552,36 @@ var createTree = exports.createTree = function createTree(virtualTree, container
   }
 
   var virtualChildren = virtualTree.props.children;
+  var className = virtualTree.props.className;
+
+  // events
   var clickListener = virtualTree.props.onClick;
   var changeListener = virtualTree.props.onChange;
-  var className = virtualTree.props.className;
+  // drag and drop events
+
+  var onDragStartListener = virtualTree.props.onDragStart;
+  var onDragOverListener = virtualTree.props.onDragOver;
+  var onDragDropListener = virtualTree.props.onDragDrop;
+
+  // custom data in tags
+  var customData = virtualTree.props.customData;
+
+  if (customData) {
+    node.customData = customData;
+  }
+
+  if (onDragStartListener) {
+    node.addEventListener('dragstart', onDragStartListener);
+    node.draggable = true;
+  }
+
+  if (onDragOverListener) {
+    node.addEventListener('dragover', onDragOverListener);
+  }
+
+  if (onDragDropListener) {
+    node.addEventListener('drop', onDragDropListener);
+  }
 
   if (clickListener) {
     node.addEventListener('click', clickListener);
@@ -743,6 +716,175 @@ document.addEventListener('DOMContentLoaded', function () {
   window.reduxStore = reduxStore;
   window.reduxActions = reduxActions;
 });
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _virtualDom = __webpack_require__(6);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Todo = function () {
+  function Todo(props) {
+    _classCallCheck(this, Todo);
+
+    this.props = props;
+  }
+
+  _createClass(Todo, [{
+    key: 'isChecked',
+    value: function isChecked(todo) {
+      var selectedList = this.props.appState.documents['selectedTodos'];
+      selectedList = selectedList ? selectedList : [];
+      var found = selectedList.filter(function (el) {
+        return el.id === todo.id;
+      })[0];
+      return found ? true : false;
+    }
+  }, {
+    key: 'checkboxHandler',
+    value: function checkboxHandler(todo) {
+      var _this = this;
+
+      return function (e) {
+        if (e.currentTarget.checked) {
+          _this.addSelectedTodo(todo);
+        } else {
+          _this.deleteSelectedTodo(todo);
+        }
+      };
+    }
+  }, {
+    key: 'deleteHandler',
+    value: function deleteHandler(todo) {
+      var _this2 = this;
+
+      return function (e) {
+        var nextState = _this2.props.todosDocument;
+        var found = nextState.todos.find(function (el) {
+          return todo.id === el.id;
+        });
+        if (found) {
+          var idx = nextState.todos.indexOf(found);
+          var newTodoList = nextState.todos.slice();
+          newTodoList.splice(idx, 1);
+          nextState = Object.assign({}, nextState, { todos: newTodoList });
+          _this2.deleteSelectedTodo(todo);
+        }
+        reduxActions.setDocuments('todos_document_' + _this2.props.todosDocument.uid, nextState);
+      };
+    }
+  }, {
+    key: 'addSelectedTodo',
+    value: function addSelectedTodo(todo) {
+      var selectedList = this.props.appState.documents['selectedTodos'];
+      selectedList = selectedList || [];
+      selectedList.push(todo);
+      reduxActions.setDocuments('selectedTodos', selectedList);
+    }
+  }, {
+    key: 'deleteSelectedTodo',
+    value: function deleteSelectedTodo(todo) {
+      var selectedList = this.props.appState.documents['selectedTodos'];
+      var idx = selectedList.indexOf(todo);
+      if (idx > -1) {
+        selectedList.splice(idx, 1);
+      }
+      reduxActions.setDocuments('selectedTodos', selectedList);
+    }
+  }, {
+    key: 'deleteHandler',
+    value: function deleteHandler(todo, todosDocument) {
+      var _this3 = this;
+
+      return function (e) {
+        var nextState = todosDocument;
+        var found = nextState.todos.find(function (el) {
+          return todo.id === el.id;
+        });
+        if (found) {
+          var idx = nextState.todos.indexOf(found);
+          var newTodoList = nextState.todos.slice();
+          newTodoList.splice(idx, 1);
+          nextState = Object.assign({}, nextState, { todos: newTodoList });
+          _this3.deleteSelectedTodo(todo);
+        }
+        reduxActions.setDocuments('todos_document_' + todosDocument.uid, nextState);
+      };
+    }
+  }, {
+    key: 'onDragStart',
+    value: function onDragStart(todo, todosDocument) {
+      var _this4 = this;
+
+      return function (e) {
+        e.dataTransfer.setData('text/plain', 'todosDocument:' + _this4.props.todosDocument.uid + '_todo:' + todo.id);
+      };
+    }
+  }, {
+    key: 'onDragOver',
+    value: function onDragOver(todo, todosDocument) {
+      return function (e) {
+        return e.preventDefault();
+      };
+    }
+  }, {
+    key: 'onDragDrop',
+    value: function onDragDrop(todo, todosDocument) {
+      var _this5 = this;
+
+      return function (e) {
+        var data = e.dataTransfer.getData('text/plain');
+        var draggedTodosDocument = _this5.props.appState.documents['todos_document_' + data.split('_')[0].split(':').pop()];
+        var draggedTodo = draggedTodosDocument.todos.find(function (el) {
+          return parseInt(data.split('_')[1].split(':').pop()) === el.id;
+        });
+
+        if (draggedTodosDocument.uid === todosDocument.uid) {
+          draggedTodosDocument = todosDocument;
+        }
+
+        draggedTodosDocument.todos.splice(draggedTodosDocument.todos.indexOf(draggedTodo), 1);
+        todosDocument.todos.splice(todosDocument.todos.indexOf(todo) + 1, 0, draggedTodo);
+
+        reduxActions.setDocuments('todos_document_' + draggedTodosDocument.uid, draggedTodosDocument);
+        reduxActions.setDocuments('todos_document_' + todosDocument.uid, todosDocument);
+      };
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var todo = this.props.todo;
+      var todosDocument = this.props.todosDocument;
+      var customData = {
+        todosDocument: this.props.todosDocument,
+        todo: todo
+      };
+      return (0, _virtualDom.li)({
+        className: 'todo',
+        onDragStart: this.onDragStart(todo, todosDocument),
+        onDragOver: this.onDragOver(todo, todosDocument),
+        onDragDrop: this.onDragDrop(todo, todosDocument),
+        customData: customData,
+        children: [(0, _virtualDom.checkbox)({ onClick: this.checkboxHandler(todo), checked: this.isChecked(todo) }), (0, _virtualDom.textNode)({ text: todo.id + ', ' + todo.title + ' ' }), (0, _virtualDom.div)({ className: 'button', onClick: this.deleteHandler(todo, this.props.todosDocument) })]
+      });
+    }
+  }]);
+
+  return Todo;
+}();
+
+exports.default = Todo;
 
 /***/ })
 /******/ ]);

@@ -12,7 +12,6 @@ import {
 class SelectedList {
   constructor(appState) {
     this.appState = appState ? appState : {}
-    this.currentDocument = appState && appState.documents ? appState.documents.current : {}
   }
 
   render() {
