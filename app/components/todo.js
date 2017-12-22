@@ -124,7 +124,11 @@ class Todo {
         children: [
           checkbox({onClick: this.checkboxHandler(todo), checked: this.isChecked(todo)}),
           textNode({text: `${todo.id}, ${todo.title} `}),
-          div({ className: 'button', onClick: this.deleteHandler(todo, this.props.todosDocument) })
+          div({
+            className: 'button',
+            onClick: this.deleteHandler(todo, this.props.todosDocument),
+            children: [textNode({text: 'x'})] 
+          })
         ]
       })
     )

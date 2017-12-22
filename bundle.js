@@ -878,7 +878,11 @@ var Todo = function () {
         onDragOver: this.onDragOver(todo, todosDocument),
         onDragDrop: this.onDragDrop(todo, todosDocument),
         customData: customData,
-        children: [(0, _virtualDom.checkbox)({ onClick: this.checkboxHandler(todo), checked: this.isChecked(todo) }), (0, _virtualDom.textNode)({ text: todo.id + ', ' + todo.title + ' ' }), (0, _virtualDom.div)({ className: 'button', onClick: this.deleteHandler(todo, this.props.todosDocument) })]
+        children: [(0, _virtualDom.checkbox)({ onClick: this.checkboxHandler(todo), checked: this.isChecked(todo) }), (0, _virtualDom.textNode)({ text: todo.id + ', ' + todo.title + ' ' }), (0, _virtualDom.div)({
+          className: 'button',
+          onClick: this.deleteHandler(todo, this.props.todosDocument),
+          children: [(0, _virtualDom.textNode)({ text: 'x' })]
+        })]
       });
     }
   }]);
