@@ -92,7 +92,9 @@ class Todo {
       let data = e.dataTransfer.getData('text/plain')
       let draggedTodosDocument = this.props.appState.documents[`todos_document_${data.split('_')[0].split(':').pop()}`]
       let draggedTodo = draggedTodosDocument.todos.find((el) => parseInt(data.split('_')[1].split(':').pop()) === el.id)
-
+      if (draggedTodo.id === todo.id) {
+        return
+      }
       if (draggedTodosDocument.uid === todosDocument.uid) {
         draggedTodosDocument = todosDocument
       }

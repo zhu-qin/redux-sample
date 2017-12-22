@@ -849,7 +849,9 @@ var Todo = function () {
         var draggedTodo = draggedTodosDocument.todos.find(function (el) {
           return parseInt(data.split('_')[1].split(':').pop()) === el.id;
         });
-
+        if (draggedTodo.id === todo.id) {
+          return;
+        }
         if (draggedTodosDocument.uid === todosDocument.uid) {
           draggedTodosDocument = todosDocument;
         }
